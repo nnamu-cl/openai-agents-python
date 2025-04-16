@@ -893,7 +893,8 @@ class Runner:
         model_settings = agent.model_settings.resolve(run_config.model_settings)
         model_settings = RunImpl.maybe_reset_tool_choice(agent, tool_use_tracker, model_settings)
 
-        new_response = await model.get_response(
+        new_response = await model.get_response( 
+            # the system generates a response here and seems to be using the wrong method to do so
             system_instructions=system_prompt,
             input=input,
             model_settings=model_settings,
