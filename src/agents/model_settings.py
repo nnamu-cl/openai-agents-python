@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass, fields, replace
-from typing import Literal
+from typing import Any, Literal
 
+from openai._types import Body, Headers, Query
 from openai.types.shared import Reasoning
+from pydantic import BaseModel
 
 
 @dataclass
@@ -58,6 +61,18 @@ class ModelSettings:
     """Whether to include usage chunk.
     Defaults to True if not provided."""
 
+    extra_query: Query | None = None
+    """Additional query fields to provide with the request.
+    Defaults to None if not provided."""
+
+    extra_body: Body | None = None
+    """Additional body fields to provide with the request.
+    Defaults to None if not provided."""
+
+    extra_headers: Headers | None = None
+    """Additional headers to provide with the request.
+    Defaults to None if not provided."""
+
     def resolve(self, override: ModelSettings | None) -> ModelSettings:
         """Produce a new ModelSettings by overlaying any non-None values from the
         override on top of this instance."""
@@ -70,3 +85,16 @@ class ModelSettings:
             if getattr(override, field.name) is not None
         }
         return replace(self, **changes)
+
+    def to_json_dict(self) -> dict[str, Any]:
+        dataclass_dict = dataclasses.asdict(self)
+
+        json_dict: dict[str, Any] = {}
+
+        for field_name, value in dataclass_dict.items():
+            if isinstance(value, BaseModel):
+                json_dict[field_name] = value.model_dump(mode="json")
+            else:
+                json_dict[field_name] = value
+
+        return json_dict
